@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import * as M from './dist/model.mjs';
+import * as O from './dist/owners.mjs';
+const fresh=()=>O.upgrade(M.seed());let count=0;
+function test(name,f){f();count++;console.log('PASS',name);}
+const ready=s=>{O.setIntent(s,'V03','有意向','客户明确要求置换');O.inspectVehicle(s,'V03','模拟检查完成，人工估值',90000);};
+const form={target:'E7',price:'250000',trade:'90000',fee:'500',basis:'模拟价格',benefit:'BV03I'};
+test('upgrade preserves existing state and is idempotent',()=>{let s=M.seed();s.leads[0].summary='existing';O.upgrade(s);O.upgrade(s);assert.equal(s.vehicles.length,5);assert.equal(s.leads[0].summary,'existing');});
+test('vehicle records and benefits never cross VIN',()=>{let s=fresh();assert.equal(O.vehiclesFor(s,'L002').length,2);assert.equal(O.benefitsFor(s,'V02').length,0);assert.throws(()=>O.quoteMath(s,'V03',{...form,benefit:'BV01I'}));});
+test('missing relationship, expired mileage and exhausted rescue distinguished',()=>{let s=fresh();assert.equal(O.benefitState(s,s.benefits.find(b=>b.id==='BV04W')).state,'待核实');assert.equal(O.benefitState(s,s.benefits.find(b=>b.id==='BV05W')).state,'已到期');const b=s.benefits.find(b=>b.id==='BV01R');b.used=2;assert.equal(O.benefitState(s,b).state,'已用尽');});
+test('pending benefits do not deduct and blanks have no total',()=>{let s=fresh();assert.equal(O.quoteMath(s,'V03',form).deduction,0);assert.equal(O.quoteMath(s,'V03',{...form,price:''}).net,null);O.verify(s,'V03',{mileage:23800,usage:1,relation:'confirmed',note:'模拟凭据'});assert.equal(O.quoteMath(s,'V03',form).net,160200);});
+test('service task survives loss and activation; intent does not activate',()=>{let s=fresh();O.queue(s,'V01','verify');O.setIntent(s,'V01','有意向','客户主动要求');assert.equal(s.leads.find(l=>l.id==='L002').life,'已流失');M.activate(s,'L002','客户确认');assert.equal(M.tasksFor(s,'L002').filter(t=>t.domain==='service').length,1);M.lifecycle(s,'L002','已流失','预算不符');assert.equal(M.tasksFor(s,'L002').filter(t=>t.domain==='service').length,1);});
+test('no-contact and active rescue block trade actions',()=>{let s=fresh();const l=s.leads.find(l=>l.id==='L008');l.allowed=false;assert.throws(()=>O.setIntent(s,'V03','有意向','测试'));l.allowed=true;O.vehicle(s,'V03').rescueOpen=true;assert.throws(()=>O.setIntent(s,'V03','有意向','测试'));});
+test('vehicle tasks deduplicate and transfer with same deadline',()=>{let s=fresh();let t=O.queue(s,'V03','verify');assert.equal(O.queue(s,'V03','verify').id,t.id);let due=t.due;M.transfer(s,'L008','u2','门店检测','客户要求','核实权益');s.user='u2';M.resolve(s,'L008','已接收');assert.equal(t.owner,'u2');assert.equal(t.due,due);});
+test('quote needs manager, inspection and complete amounts; old versions blocked',()=>{let s=fresh();ready(s);let q=O.createQuote(s,'V03',form);assert.throws(()=>O.confirmQuote(s,q.id,'同意'));s.user='mgr';let newer=O.createQuote(s,'V03',{...form,price:''});assert.throws(()=>O.confirmQuote(s,q.id,'同意'));assert.throws(()=>O.confirmQuote(s,newer.id,'同意'));let last=O.createQuote(s,'V03',form);O.confirmQuote(s,last.id,'核实演示数据');assert.equal(last.status,'已复核（演示）');assert(M.tasksFor(s,'L008').some(t=>t.serviceKind==='explain'));});
+test('quotes expire; verification freshness expires',()=>{let s=fresh();ready(s);let q=O.createQuote(s,'V03',form);s.now+=8*86400000;assert.equal(O.quoteState(s,q),'已过期');s.now+=31*86400000;assert.equal(O.benefitState(s,s.benefits.find(b=>b.id==='BV01W')).state,'待核实');});
+console.log(count+' owner scenario groups passed');

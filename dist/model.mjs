@@ -36,7 +36,7 @@ export const visible=(s,l)=>s.user==='mgr'||l.owner===s.user||pending(s,l.id)?.t
 function get(s,id){const l=s.leads.find(l=>l.id===id);if(!l)throw Error('线索不存在');return l;}
 function manage(s,l){if(s.user!=='mgr'&&l.owner!==s.user)throw Error('请切换至当前负责人处理');}
 function required(v,label){if(!v?.trim())throw Error('请填写'+label);return v.trim();}
-function closeTasks(s,l,why){s.tasks.filter(t=>t.lead===l.id&&open(t)).forEach(t=>{t.status='已取消';t.result=why;});}
+function closeTasks(s,l,why){s.tasks.filter(t=>t.lead===l.id&&t.domain!=='service'&&open(t)).forEach(t=>{t.status='已取消';t.result=why;});}
 function closeTransfer(s,l,why){const x=pending(s,l.id);if(x){x.status='已撤回';x.end=s.now;event(s,l,'交接撤回',why);}}
 export function transfer(s,id,to,reason,summary,next){const l=get(s,id);manage(s,l);if(!['活跃','培育中'].includes(l.life))throw Error('请先激活线索再转交');if(pending(s,id))throw Error('已有待接收交接');if(to===l.owner||!person(to)||to==='mgr')throw Error('请选择其他销售');required(reason,'转交原因');required(summary,'沟通摘要');required(next,'下一步建议');const x={id:'X'+(++s.seq),lead:id,from:l.owner,fromTeam:l.team,to,reason,summary,next,status:'待接收',at:s.now,due:s.now+rules.receive};s.transfers.push(x);addTask(s,l,'接收线索',to,x.due,{transfer:x.id});event(s,l,'发起交接',`${l.owner?person(l.owner).name:'团队池'} → ${person(to).name} · ${reason}`,{transfer:x.id});return x;}
 export function resolve(s,id,action,reason=''){const l=get(s,id),x=pending(s,id);if(!x)throw Error('该交接已处理');if(action==='已撤回'){manage(s,l);}else if(s.user!==x.to&&s.user!=='mgr')throw Error('请切换至接收人处理');if(action==='已退回')required(reason,'退回原因');x.status=action;x.end=s.now;x.result=reason;s.tasks.filter(t=>t.transfer===x.id&&open(t)).forEach(t=>{t.status=action==='已接收'?'已完成':'已取消';t.completed=s.now;});
