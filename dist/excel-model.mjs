@@ -1,6 +1,7 @@
 import * as M from './model.mjs';
 
-export const models=['E5 长续航','E7 四驱版','E5 标准版'];
+import {MODEL_NAMES} from './catalog.mjs';
+export const models=MODEL_NAMES;
 export const fields=[
  {key:'name',label:'客户姓名',required:true,aliases:['姓名','客户','客户称呼','客户名称']},
  {key:'phone',label:'手机号',required:true,aliases:['电话','手机','联系方式','联系电话','手机号码']},
@@ -68,7 +69,7 @@ export function importRows(s,rows,mapping,choices,{skipErrors=false,filename='Ex
    // A prior file row can be skipped; its remaining duplicate becomes the single new lead.
    const l=M.newLead(draft,data.name,data.source,data.model);
    l.phone=data.phone;l.owner=row.ownerId;l.team=row.ownerId?M.person(row.ownerId).team:'线上直营';
-   l.budget=data.budget||'待确认';l.summary=data.note||'Excel 导入，待确认需求';
+   l.budget=data.budget||'待确认';l.stage='新咨询';l.summary=data.note||'Excel 导入，待确认需求';
    l.imports=[{batch,at:s.now,...data}];
    for(const t of M.tasksFor(draft,l.id)){t.owner=l.owner||'mgr';t.type=l.owner?'首次联系':'分配线索';t.due=s.now+(l.owner?M.rules.contact:15*60000);t.originalDue=t.due;}
    M.event(draft,l,'Excel 导入 · 批次 #'+batch,'新增线索；'+(l.owner?'分配给 '+M.person(l.owner).name:'进入线上直营主管待分配池'),{batch,importRow:row.row});
