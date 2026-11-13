@@ -2,7 +2,7 @@
 // Update the portfolio copy, citations and media paths here.
 // Paths are relative so the site works on any static host, including sub-paths.
 // demo is used from /case-study/; caseStudy is used from the demo root. demoUrl is printed for PDF/print readers.
-export const caseStudyLinks={demo:'../',caseStudy:'case-study/',demoFooterLabel:'Case study →',demoUrl:'https://leadflow-dtc-demo.azure-larch-2626.chatgpt.site/'};
+export const caseStudyLinks={demo:'../',caseStudy:'case-study/',demoFooterLabel:'Case study →',demoUrl:'https://dervishxj.github.io/leadflow/'};
 export const caseStudyContent={en:{
  language:'en',pageTitle:'LeadFlow — Product case study',brand:'LeadFlow',navLabel:'Case study',backLabel:'Back to the demo',
  sectionLabel:'Case study sections',

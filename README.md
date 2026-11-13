@@ -2,7 +2,7 @@
 
 A workflow prototype for the online-to-store lead handoff in automotive retail: who owns a lead, whether they accepted it, and what happens next.
 
-**[Live demo](https://YOUR-USERNAME.github.io/leadflow/)** · **[Case study](https://YOUR-USERNAME.github.io/leadflow/case-study/)**
+**[Live demo](https://dervishxj.github.io/leadflow/)** · **[Case study](https://dervishxj.github.io/leadflow/case-study/)**
 
 ![A handoff being sent in LeadFlow](dist/assets/case-study/hero.gif)
 
@@ -42,7 +42,7 @@ The interface is in Chinese, because the users are sales staff in China.
 
 ## My role
 
-I defined the problem framing, the four rules, the edge cases and the trade-offs. ChatGPT built the first clickable prototype, and Codex implemented fixes and the Excel import from my specs. The decisions and their costs are in the [case study](https://YOUR-USERNAME.github.io/leadflow/case-study/).
+I defined the problem framing, the four rules, the edge cases and the trade-offs. ChatGPT built the first clickable prototype, and Codex implemented fixes and the Excel import from my specs. The decisions and their costs are in the [case study](https://dervishxj.github.io/leadflow/case-study/).
 
 ## Limits
 
