@@ -7,6 +7,7 @@ import * as M from './model.mjs';
 import * as O from './owners.mjs';
 import {ownerUI} from './owner-ui.mjs';
 const $=s=>document.querySelector(s),H=3600000,esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let firstVisit=false;try{firstVisit=!localStorage.getItem('leadflow-v1');}catch{}
 let s;try{s=JSON.parse(localStorage.getItem('leadflow-v1'));}catch{}if(!s||s.version!==1)s=M.seed();
 let page='leads',filter='全部归我',query='',selected=null,taskFilter='今日与逾期',flowFilter='全部',period=30,teamFilter='全部团队',sourceFilter='全部来源',scopeIds=null;
 const icons={grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M16 3a4 4 0 0 1 0 8"/><circle cx="9" cy="7" r="4"/>',tasks:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 1.5 1.5L12 8m2 2h3M8 16h9"/>',flow:'<path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/>',refresh:'<path d="M20 7v5h-5M4 17v-5h5M6.2 6.2a8 8 0 0 1 13.2 3M4.6 14.8a8 8 0 0 0 13.2 3"/>',bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',plus:'<path d="M12 5v14M5 12h14"/>',arrow:'<path d="M5 12h14m-5-5 5 5-5 5"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',chart:'<path d="M4 3v18h17M8 16v-4m5 4V8m5 8V5"/>',check:'<path d="m5 12 4 4L19 6"/>'};
@@ -94,3 +95,5 @@ function showDetail(id){selected=id;if(ownerMode&&lead(id).existingOwner){const 
 function ownerAction(action,el){if(action==='owner-open'){ownerMode=true;showDetail(selected);return;}if(action==='owner-overview'){ownerMode=false;showDetail(selected);return;}owner.action(action,ownerVehicle,el);if($('.modal'))return;render();if(selected)showDetail(selected);}
 const excel=excelUI({getState:()=>s,esc,notify:toast,commit:next=>{localStorage.setItem('leadflow-v1',JSON.stringify(next));s=next;render();}});
 render();
+// First-time visitors get the demo route straight away instead of an unexplained workspace.
+if(firstVisit)guide();
